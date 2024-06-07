@@ -82,6 +82,8 @@ def analysis(
         markdown += get_badd_markdown()
     elif adaface_present:
         markdown += get_adaface_markdown()
+    elif len(results_dict["biases"] > 0):
+        markdown += get_flac_markdown()
     return markdown
 
 
