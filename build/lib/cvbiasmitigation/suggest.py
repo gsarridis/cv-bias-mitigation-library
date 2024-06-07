@@ -60,6 +60,10 @@ def analysis(
                 "Given that there are multiple spurious correlations, consider using the BAdd method to mitigate it."
             )
 
+    if len(results_dict["mitigation"]) == 0:
+        results_dict["mitigation"].append(
+            "Consider using the FLAC method for learning fair represnetations."
+        )
     nl = "\n"
     markdown = f"""
 # Task: {results_dict['task']}
@@ -82,8 +86,7 @@ def analysis(
         markdown += get_badd_markdown()
     elif adaface_present:
         markdown += get_adaface_markdown()
-    elif len(results_dict["biases"]) > 0:
-        markdown += get_flac_markdown()
+
     return markdown
 
 
