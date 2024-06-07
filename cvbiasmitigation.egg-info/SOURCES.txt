@@ -1,0 +1,10 @@
+setup.py
+cvbiasmitigation/__init__.py
+cvbiasmitigation/md.py
+cvbiasmitigation/suggest.py
+cvbiasmitigation.egg-info/PKG-INFO
+cvbiasmitigation.egg-info/SOURCES.txt
+cvbiasmitigation.egg-info/dependency_links.txt
+cvbiasmitigation.egg-info/requires.txt
+cvbiasmitigation.egg-info/top_level.txt
+cvbiasmitigation/data/rfw.csv
