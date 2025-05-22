@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
-from md import (
+from .md import (
     get_flac_markdown,
     get_badd_markdown,
     get_adaface_markdown,

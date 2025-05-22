@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cvbiasmitigation
-Version: 0.0.10
+Version: 0.0.11
 Summary: A package for discovering biases and suggesting mitigation approaches
 Home-page: https://github.com/gsarridis/
 Author: Ioannis Sarridis
