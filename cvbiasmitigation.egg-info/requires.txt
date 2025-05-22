@@ -1,2 +1,5 @@
 scipy
 pandas
+matplotlib
+seaborn
+numpy>=2

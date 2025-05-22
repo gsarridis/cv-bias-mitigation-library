@@ -275,6 +275,24 @@ def get_flac_json():
             "language": "python",
             "content": "def flac_train(trainloader, net, bcc, epochs, weight=100):\n    lossfunc = nn.CrossEntropyLoss()\n    optimizer = torch.optim.Adam(net.parameters(), lr=0.001)\n    bcc.eval()\n    net.train()\n    for epoch in range(epochs):\n        for inputs, labels, sensitive in trainloader:\n            optimizer.zero_grad()\n            inputs, labels, sensitive = inputs.to(device), labels.to(device), sensitive.to(device)\n            outputs, features = net(inputs)\n            loss = lossfunc(outputs, labels)\n            with torch.no_grad():\n                _, sensfeats = bcc(inputs)\n            loss += weight*flac.flac_loss(sensfeats, features, torch.squeeze(labels))\n            loss.backward()\n            optimizer.step()",
         },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "content": "Note that FLAC is supported by the ",
+                },
+                {
+                    "type": "link",
+                    "url": "https://github.com/mever-team/vb-mitigator",
+                    "content": "VB-Mitigator",
+                },
+                {
+                    "type": "text",
+                    "content": ", a code-base facilitating employing state-of-the-art visual bias mitigation algorithms.",
+                },
+            ],
+        },
     ]
 
     return json
@@ -382,6 +400,24 @@ def get_badd_json():
             "language": "python",
             "content": "def train(trainloader, net, sensitive_net, epochs):\n    lossfunc = nn.CrossEntropyLoss()\n    optimizer = torch.optim.Adam(net.parameters(), lr=0.001)\n    net.train()\n    sensitive_net.eval()\n    for epoch in range(epochs):\n        for inputs, labels, sensitive in trainloader:\n            optimizer.zero_grad()\n            inputs, labels, sensitive = inputs.to(device), labels.to(device), sensitive.to(device)\n            with torch.no_grad():\n                # For BCC third option \n                sensitive = F.one_hot(sensitive, num_classes=num_classes).float()\n                sens_feat = sensitive_net(sensitive)\n                # For BCC first and second options \n                _, sens_feat = sensitive_net(sensitive)\n            outputs = model.badd_forward(inputs, sens_feat)\n            loss = lossfunc(outputs, labels)\n            loss.backward()\n            optimizer.step()",
         },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "content": "Note that BAdd is supported by the ",
+                },
+                {
+                    "type": "link",
+                    "url": "https://github.com/mever-team/vb-mitigator",
+                    "content": "VB-Mitigator",
+                },
+                {
+                    "type": "text",
+                    "content": ", a code-base facilitating employing state-of-the-art visual bias mitigation algorithms.",
+                },
+            ],
+        },
     ]
     return json
 
@@ -421,21 +457,16 @@ def get_adaface_json():
             "type": "paragraph",
             "content": [
                 {
+                    "type": "link",
+                    "url": "https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_",
+                    "content": "Insightface",
+                },
+                {
                     "type": "text",
-                    "content": "InsightFace provides a variety of labeled face datasets preprocessed to ",
+                    "content": " provides a variety of labeled face datasets preprocessed to ",
                 },
                 {"type": "inline_code", "content": "112x112"},
                 {"type": "text", "content": " size."},
-            ],
-        },
-        {
-            "type": "paragraph",
-            "content": [
-                {
-                    "type": "link",
-                    "url": "https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_",
-                    "content": "insightface link",
-                }
             ],
         },
         {
@@ -497,7 +528,7 @@ def get_adaface_json():
                         {
                             "type": "link",
                             "url": "https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_",
-                            "content": "insightface link",
+                            "content": "insightface",
                         },
                     ],
                 },
@@ -607,7 +638,7 @@ def get_adaface_json():
                         {
                             "type": "link",
                             "url": "https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_",
-                            "content": "insightface link",
+                            "content": "insightface",
                         },
                     ],
                 },

@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
-from .md import (
+from md import (
     get_flac_markdown,
     get_badd_markdown,
     get_adaface_markdown,
@@ -10,6 +10,10 @@ from .md import (
     get_adaface_json,
     get_flac_json,
 )
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+import base64
 
 
 def analysis_json(
@@ -22,6 +26,7 @@ def analysis_json(
 ):
     df = pd.read_csv(csv_path)
     representation_bias_result = analyze_representation_bias(df, sensitive)
+    representation_bias_plot = plot_representation_bias_html(df, sensitive)
     suggestions = []
     results_dict = {"task": task, "biases": [], "mitigation": []}
     bias_threshold = rep_th
@@ -70,13 +75,17 @@ def analysis_json(
             "Consider using the FLAC method for learning fair representations."
         )
 
-    if representation_biases_found or spurious_correlations_found:
-        title = "Biases Detected"
+    if representation_biases_found and not spurious_correlations_found:
+        title = "Visual representation bias"
+    elif spurious_correlations_found and not representation_biases_found:
+        title = "Spurious correlations bias"
+    elif spurious_correlations_found and representation_biases_found:
+        title = "Spurious correlations and representation biases"
     else:
-        title = "No Significant Biases Detected"
+        title = "No issue detected"
 
     json_output = [
-        {"type": "heading", "level": 1, "content": f"Bias Analysis Report: {title}"},
+        {"type": "heading", "level": 1, "content": title},
         {
             "type": "paragraph",
             "content": [
@@ -87,6 +96,7 @@ def analysis_json(
             ],
         },
         {"type": "heading", "level": 3, "content": "Representation Bias"},
+        {"type": "html", "content": representation_bias_plot},
     ]
 
     if representation_biases_found:
@@ -339,6 +349,54 @@ def find_spurious_correlations(
     return spurious_correlations
 
 
+def plot_representation_bias_html(
+    df: pd.DataFrame, sensitive: List[str]
+) -> str:
+    """
+    Creates a barplot showing the distribution of intersectional groups
+    defined by the given sensitive attributes, and returns it as an HTML <img> tag.
+
+    Parameters:
+    df (pd.DataFrame): DataFrame containing sensitive attributes.
+    sensitive (List[str]): List of column names to analyze.
+
+    Returns:
+    str: HTML <img> tag containing the base64-encoded plot.
+    """
+    
+    # Step 1: Create intersection key
+    df['intersection'] = df[sensitive].astype(str).agg(' / '.join, axis=1)
+    counts = df['intersection'].value_counts(normalize=True).sort_values(ascending=False)
+
+    # Step 2: Adjust figure width based on number of categories
+    n_groups = len(counts)
+    width_per_group = 0.2
+    min_width = 12
+    fig_width = max(min_width, n_groups * width_per_group)
+
+    # Step 3: Create the plot
+    plt.figure(figsize=(fig_width, 6))
+    sns.barplot(x=counts.index, y=counts.values, palette="muted")
+    plt.xticks(rotation=45, ha='right')
+    attr_label = " / ".join(sensitive)
+    plt.xlabel(f"Intersection of Sensitive Attributes ({attr_label})")
+    plt.ylabel('Proportion')
+    plt.title('Representation Bias by Sensitive Attribute Intersections')
+    plt.tight_layout()
+
+    # Step 4: Convert plot to HTML
+    buffer = io.BytesIO()
+    # plt.savefig("tmp.png", bbox_inches='tight')
+    plt.savefig(buffer, format='png', bbox_inches='tight')
+    plt.close()
+
+    buffer.seek(0)
+    img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+    html_img = f'<img src="data:image/png;base64,{img_base64}" />'
+
+    return html_img
+    
+
 def analyze_representation_bias(
     df: pd.DataFrame, sensitive: List[str]
 ) -> Dict[str, Dict[str, float]]:
@@ -419,10 +477,10 @@ def json_to_str_recursively(data, indent=0):
 #     csv_path="./data/rfw.csv",
 #     task="face verification",  # "image classification",
 #     target="Gender",
-#     sensitive=["Age Category", "Age"],
+#     sensitive=["Gender", "Race", "Age Category"],
 #     sp_th=0.01,
 #     rep_th=0.01,
-#     output="md",
+#     output="json",
 # )
 # print(data)
 # print(json_to_str_recursively(data))
