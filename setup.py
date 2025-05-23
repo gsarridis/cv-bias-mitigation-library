@@ -14,7 +14,7 @@ long_description = (
 
 setuptools.setup(
     name="cvbiasmitigation",
-    version="0.0.11",
+    version="0.0.12",
     author="Ioannis Sarridis",
     author_email="gsarridis@iti.gr",
     description="A package for discovering biases and suggesting mitigation approaches",

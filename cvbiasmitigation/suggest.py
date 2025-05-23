@@ -353,40 +353,39 @@ def plot_representation_bias_html(
     df: pd.DataFrame, sensitive: List[str]
 ) -> str:
     """
-    Creates a barplot showing the distribution of intersectional groups
+    Creates a horizontal barplot showing the distribution of intersectional groups
     defined by the given sensitive attributes, and returns it as an HTML <img> tag.
-
-    Parameters:
-    df (pd.DataFrame): DataFrame containing sensitive attributes.
-    sensitive (List[str]): List of column names to analyze.
-
-    Returns:
-    str: HTML <img> tag containing the base64-encoded plot.
     """
-    
+
     # Step 1: Create intersection key
     df['intersection'] = df[sensitive].astype(str).agg(' / '.join, axis=1)
-    counts = df['intersection'].value_counts(normalize=True).sort_values(ascending=False)
+    counts = df['intersection'].value_counts(normalize=True).sort_values(ascending=True)  # ascending for horizontal plot
 
-    # Step 2: Adjust figure width based on number of categories
+    # Step 2: Adjust figure height based on number of categories
     n_groups = len(counts)
-    width_per_group = 0.2
-    min_width = 12
-    fig_width = max(min_width, n_groups * width_per_group)
+    height_per_group = 0.2
+    min_height = 4
+    fig_height = max(min_height, n_groups * height_per_group)
 
-    # Step 3: Create the plot
-    plt.figure(figsize=(fig_width, 6))
-    sns.barplot(x=counts.index, y=counts.values, palette="muted")
-    plt.xticks(rotation=45, ha='right')
+    # Step 3: Create the plot (horizontal)
+    plt.figure(figsize=(8, fig_height))
+    ax = sns.barplot(x=counts.values, y=counts.index, palette="muted")
+
+    # Add proportion labels to each bar
+    for i, (val, label) in enumerate(zip(counts.values, counts.index)):
+        ax.text(val + 0.001, i, f"{val:.4f}", va='center')
+
+    max_val = counts.values.max()
+    plt.xlim(0, max_val + max_val*0.1)
+    plt.xlabel('Proportion (%)')
     attr_label = " / ".join(sensitive)
-    plt.xlabel(f"Intersection of Sensitive Attributes ({attr_label})")
-    plt.ylabel('Proportion')
+    plt.ylabel(f"Intersection of Sensitive Attributes ({attr_label})")
     plt.title('Representation Bias by Sensitive Attribute Intersections')
     plt.tight_layout()
 
     # Step 4: Convert plot to HTML
     buffer = io.BytesIO()
-    # plt.savefig("tmp.png", bbox_inches='tight')
+    plt.savefig("tmp.png", bbox_inches='tight')
     plt.savefig(buffer, format='png', bbox_inches='tight')
     plt.close()
 
@@ -395,7 +394,7 @@ def plot_representation_bias_html(
     html_img = f'<img src="data:image/png;base64,{img_base64}" />'
 
     return html_img
-    
+
 
 def analyze_representation_bias(
     df: pd.DataFrame, sensitive: List[str]
