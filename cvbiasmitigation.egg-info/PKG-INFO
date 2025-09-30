@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: cvbiasmitigation
-Version: 0.0.12
+Version: 0.0.15
 Summary: A package for discovering biases and suggesting mitigation approaches
 Home-page: https://github.com/gsarridis/
 Author: Ioannis Sarridis
@@ -15,5 +15,14 @@ Requires-Dist: pandas
 Requires-Dist: matplotlib
 Requires-Dist: seaborn
 Requires-Dist: numpy>=2
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
 
 A package for discovering biases and suggesting mitigation approaches <br>

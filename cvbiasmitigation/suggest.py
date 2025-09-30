@@ -70,10 +70,10 @@ def analysis_json(
                 "Given that there are multiple spurious correlations, consider using the BAdd method to mitigate it."
             )
 
-    if len(results_dict["mitigation"]) == 0:
-        results_dict["mitigation"].append(
-            "Consider using the FLAC method for learning fair representations."
-        )
+    # if len(results_dict["mitigation"]) == 0:
+    #     results_dict["mitigation"].append(
+    #         "Consider using the FLAC method for learning fair representations."
+    #     )
 
     if representation_biases_found and not spurious_correlations_found:
         title = "Visual representation bias"
@@ -91,7 +91,7 @@ def analysis_json(
             "content": [
                 {
                     "type": "text",
-                    "content": "This report analyzes the dataset for representation biases and spurious correlations, providing insights and mitigation recommendations.",
+                    "content": "This report analyzes the dataset for representation biases and spurious correlations, providing insights and mitigation recommendations. Representation bias occurs when certain groups or attributes are underrepresented or overrepresented in a dataset, leading to learned models that perform disproportionately well or poorly across different subpopulations. Spurious correlations refer to misleading statistical dependencies between the target variable and non-causal, often bias-related, features. These correlations can cause a model to rely on superficial cues rather than meaningful, task-relevant features.",
                 }
             ],
         },
@@ -127,7 +127,7 @@ def analysis_json(
             {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
         )
     else:
-        paragraph = "The analysis indicates no significant representation biases across the sensitive attributes. The distribution of data across different groups appears to be relatively balanced, suggesting a well-represented dataset."
+        paragraph = f"The analysis indicates no significant representation biases across the sensitive attributes, as the maximum difference in representation across all target–sensitive attribute pairs remains below {rep_th*100:.1f}%. The distribution of data across different groups appears to be relatively balanced, suggesting a well-represented dataset."
         json_output.append(
             {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
         )
@@ -162,7 +162,7 @@ def analysis_json(
             {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
         )
     else:
-        paragraph = "No significant spurious correlations were found between the target variable and the sensitive attributes. This suggests that the model is unlikely to learn misleading relationships based on these attributes."
+        paragraph = f"No significant spurious correlations were found between the target variable and the sensitive attributes, as the maximum correlation across all target–sensitive attribute pairs remains below {sp_th:.2f}. This suggests that the model is unlikely to learn misleading relationships based on these attributes."
         json_output.append(
             {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
         )
@@ -173,38 +173,210 @@ def analysis_json(
     # json_output.append({"type": "paragraph", "content": f"**Task: {results_dict['task']}**"})
 
     if representation_biases_found or spurious_correlations_found:
-        paragraph = "Given the identified representation biases and spurious correlations, several mitigation strategies are recommended. "
+        paragraph = "Given the identified biases, the following mitigation strategies are recommended. \n"
+        json_output.append(
+            {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
+        )
         if representation_biases_found:
-            paragraph += "For representation bias, consider techniques such as oversampling or undersampling to balance the dataset. "
+            paragraph = "For representation bias, consider techniques such as oversampling or undersampling to balance the dataset. "
+            json_output.append(
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "content": "For representation bias: \n"}
+                    ],
+                }
+            )
+            list_item = {
+                "type": "list",
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "content": "- Consider techniques such as oversampling or undersampling to balance the dataset w.r.t the desired attribute. For instance, the ",
+                            },
+                            {
+                                "type": "link",
+                                "url": "https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler",
+                                "content": "WeightedRandomSampler",
+                            },
+                            {
+                                "type": "text",
+                                "content": " provided by pytorch can be used for this purpose.\n",
+                            },
+                        ],
+                    },
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "content": "- Use synthetic data generation to enhance representation balance. For instance, the ",
+                            },
+                            {
+                                "type": "link",
+                                "url": "https://github.com/gebaltso/SDFD/",
+                                "content": "SDFD",
+                            },
+                            {
+                                "type": "text",
+                                "content": " is an approach that takes advantage of state-of-the-art generative models to build versatile synthetic face image data with diverse attributes. \n \n <sub>Baltsou, G., Sarridis, I., Koutlis, C., & Papadopoulos, S. (2024, May). Sdfd: Building a versatile synthetic face image dataset with diverse attributes. In *2024 IEEE 18th International Conference on Automatic Face and Gesture Recognition (FG)* (pp. 1-10). IEEE.</sub>\n",
+                            },
+                        ],
+                    },
+                ],
+            }
+            json_output.append(list_item)
+
+            # json_output.append({"type": "paragraph", "content": [{"type": "text", "content": rep_bias_content}]})
+
         if spurious_correlations_found:
+            json_output.append(
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "content": "\nFor spurious correlations: \n"}
+                    ],
+                }
+            )
             if len(spurious_correlations) == 1:
-                paragraph += "Additionally, due to the spurious correlations, FLAC is suggested to reduce the model's reliance on these attributes. "
+                json_output.append(
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "content": "- Since only a single spurious correlation is present, ",
+                            },
+                            {
+                                "type": "link",
+                                "url": "https://github.com/gsarridis/FLAC",
+                                "content": "FLAC",
+                            },
+                            {
+                                "type": "text",
+                                "content": " offers an effective way to mitigate its impact during training. Specifically, FLAC mitigates bias by minimizing the mutual information between the target labels and the correlated attribute. \n \n <sub>Sarridis, I., Koutlis, C., Papadopoulos, S., & Diou, C. (2024). Flac: Fairness-aware representation learning by suppressing attribute-class associations. *IEEE Transactions on Pattern Analysis and Machine Intelligence.*</sub>\n",
+                            },
+                        ],
+                    }
+                )
             else:
-                paragraph += "Additionally, due to the spurious correlations, BAdd is suggested to reduce the model's reliance on these attributes. "
-        if task.lower() == "face verification":
-            paragraph += "For face verification tasks, AdaFace is recommended to train fairer models."
-        json_output.append(
-            {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
-        )
+                json_output.append(
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "content": "- Considering that more than one attribute contributes to the spurious correlations, ",
+                            },
+                            {
+                                "type": "link",
+                                "url": "https://github.com/mever-team/vb-mitigator",
+                                "content": "BAdd",
+                            },
+                            {
+                                "type": "text",
+                                "content": " is suggested as a mitigation methodology due to its effectiveness in multi-attribute bias scenarios. In particular, BAdd is a simple yet effective method that promotes learning fair representations by incorporating features representing these attributes into the backbone. \n \n <sub>Sarridis, I., Koutlis, C., Papadopoulos, S., & Diou, C. (2024). Badd: Bias mitigation through bias addition. *In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) Workshops, 2025.*</sub>\n",
+                            },
+                        ],
+                    }
+                )
 
+        # json_output.append(
+        #     {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
+        # )
     else:
-        paragraph = "Although no significant biases were detected, it is still recommended to consider FLAC for learning fair representations. This proactive approach can enhance the model's robustness and fairness."
+        paragraph = ""
         json_output.append(
-            {"type": "paragraph", "content": [{"type": "text", "content": paragraph}]}
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "content": "- Although no significant biases were detected, it is still recommended to employ an open-set bias mitigation approach, such as ",
+                    },
+                    {
+                        "type": "link",
+                        "url": "https://github.com/mever-team/vb-mitigator",
+                        "content": "MAVias",
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which automatically identifies potential biases in natural images using foundation models and allows for training a model that is not affected by these biases. \n \n <sub>Sarridis, I., Koutlis, C., Papadopoulos, S., & Diou, C. (2024). MAVias: Mitigate any Visual Bias. *In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), 2025.*</sub>\n",
+                    },
+                ],
+            }
+        )
+    if task.lower() == "face verification":
+        json_output.append(
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "content": "\nFor face verification tasks: \n"}
+                ],
+            }
         )
 
-    flac_present = any("flac" in text.lower() for text in results_dict["mitigation"])
-    badd_present = any("badd" in text.lower() for text in results_dict["mitigation"])
-    adaface_present = any(
-        "adaface" in text.lower() for text in results_dict["mitigation"]
-    )
+        json_output.append(
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "content": "-  "},
+                    {
+                        "type": "link",
+                        "url": "https://linkinghub.elsevier.com/retrieve/pii/S1566253524001003",
+                        "content": "Adaface",
+                    },
+                    {
+                        "type": "text",
+                        "content": " is one of the most widely adopted approaches for training fairer models. Specifically, in the FRCSyn challenge—which focuses on training fair face verification models using synthetic data—most of the top-performing solutions employ the Adaface approach. \n \n <sub>Melzi, P., Tolosana, R., Vera-Rodriguez, R., Kim, M., Rathgeb, C., Liu, X., ... & Marras, M. (2024). FRCSyn-onGoing: Benchmarking and comprehensive evaluation of real and synthetic data to improve face recognition systems. *Information Fusion*, 107, 102322.</sub>\n",
+                    },
+                ],
+            }
+        )
+        json_output.append(
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "content": "- Data augmentation techniques targeting to a specific task can be applied to improve a model's fairness. For example, ",
+                    },
+                    {
+                        "type": "link",
+                        "url": "",
+                        "content": "face-swapping augmentation",
+                    },
+                    {
+                        "type": "text",
+                        "content": " can be employed in ID document and selfie face verification tasks. \n \n <sub>Moussa, E. M., Sarridis, I., Krasanakis, E., Ramoly, N., Papadopoulos, S., Awal, A. M., & Younes, L. (2025). Face-swapping Based Data Augmentation for ID Document and Selfie Face Verification. In Proceedings of the Winter Conference on Applications of Computer Vision (pp. 1421-1428).</sub>\n",
+                    },
+                ],
+            }
+        )
+    # print(results_dict["mitigation"])
+    # flac_present = any("flac" in text.lower() for text in results_dict["mitigation"])
+    # badd_present = any("badd" in text.lower() for text in results_dict["mitigation"])
+    # adaface_present = any(
+    #     "adaface" in text.lower() for text in results_dict["mitigation"]
+    # )
 
-    if flac_present:
+    if len(spurious_correlations) == 1:
         json_output += get_flac_json()
-    elif badd_present:
+    elif len(spurious_correlations) > 1:
         json_output += get_badd_json()
-    elif adaface_present:
+
+    if task.lower() == "face verification":
         json_output += get_adaface_json()
+
+    # if flac_present:
+    #     json_output += get_flac_json()
+    # elif badd_present:
+    #     json_output += get_badd_json()
+    # elif adaface_present:
+    #     json_output += get_adaface_json()
 
     return json_output  # json.dumps(json_output, indent=4)
 
@@ -349,17 +521,17 @@ def find_spurious_correlations(
     return spurious_correlations
 
 
-def plot_representation_bias_html(
-    df: pd.DataFrame, sensitive: List[str]
-) -> str:
+def plot_representation_bias_html(df: pd.DataFrame, sensitive: List[str]) -> str:
     """
     Creates a horizontal barplot showing the distribution of intersectional groups
     defined by the given sensitive attributes, and returns it as an HTML <img> tag.
     """
 
     # Step 1: Create intersection key
-    df['intersection'] = df[sensitive].astype(str).agg(' / '.join, axis=1)
-    counts = df['intersection'].value_counts(normalize=True).sort_values(ascending=True)  # ascending for horizontal plot
+    df["intersection"] = df[sensitive].astype(str).agg(" / ".join, axis=1)
+    counts = (
+        df["intersection"].value_counts(normalize=True).sort_values(ascending=True)
+    )  # ascending for horizontal plot
 
     # Step 2: Adjust figure height based on number of categories
     n_groups = len(counts)
@@ -373,24 +545,24 @@ def plot_representation_bias_html(
 
     # Add proportion labels to each bar
     for i, (val, label) in enumerate(zip(counts.values, counts.index)):
-        ax.text(val + 0.001, i, f"{val:.4f}", va='center')
+        ax.text(val + 0.001, i, f"{val:.4f}", va="center")
 
     max_val = counts.values.max()
-    plt.xlim(0, max_val + max_val*0.1)
-    plt.xlabel('Proportion (%)')
+    plt.xlim(0, max_val + max_val * 0.1)
+    plt.xlabel("Proportion (%)")
     attr_label = " / ".join(sensitive)
     plt.ylabel(f"Intersection of Sensitive Attributes ({attr_label})")
-    plt.title('Representation Bias by Sensitive Attribute Intersections')
+    plt.title("Representation Bias by Sensitive Attribute Intersections")
     plt.tight_layout()
 
     # Step 4: Convert plot to HTML
     buffer = io.BytesIO()
-    plt.savefig("tmp.png", bbox_inches='tight')
-    plt.savefig(buffer, format='png', bbox_inches='tight')
+    plt.savefig("tmp.png", bbox_inches="tight")
+    plt.savefig(buffer, format="png", bbox_inches="tight")
     plt.close()
 
     buffer.seek(0)
-    img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+    img_base64 = base64.b64encode(buffer.read()).decode("utf-8")
     html_img = f'<img src="data:image/png;base64,{img_base64}" />'
 
     return html_img

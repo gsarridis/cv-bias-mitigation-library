@@ -14,7 +14,7 @@ long_description = (
 
 setuptools.setup(
     name="cvbiasmitigation",
-    version="0.0.12",
+    version="0.0.15",
     author="Ioannis Sarridis",
     author_email="gsarridis@iti.gr",
     description="A package for discovering biases and suggesting mitigation approaches",
@@ -27,13 +27,7 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[
-        "scipy",
-        "pandas",
-        "matplotlib",
-        "seaborn",
-        "numpy>=2"
-    ],
+    install_requires=["scipy", "pandas", "matplotlib", "seaborn", "numpy>=2"],
     python_requires=">=3.6",
     package_data={"cvbiasmitigation": ["./data/rfw.csv"]},
     include_package_data=True,

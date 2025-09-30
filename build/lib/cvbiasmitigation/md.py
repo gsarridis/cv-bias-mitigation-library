@@ -396,6 +396,15 @@ def get_badd_json():
         },
         {"type": "heading", "level": 4, "content": "Train the fair model"},
         {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "content": "Use the following function for running the training procedure.",
+                }
+            ],
+        },
+        {
             "type": "code",
             "language": "python",
             "content": "def train(trainloader, net, sensitive_net, epochs):\n    lossfunc = nn.CrossEntropyLoss()\n    optimizer = torch.optim.Adam(net.parameters(), lr=0.001)\n    net.train()\n    sensitive_net.eval()\n    for epoch in range(epochs):\n        for inputs, labels, sensitive in trainloader:\n            optimizer.zero_grad()\n            inputs, labels, sensitive = inputs.to(device), labels.to(device), sensitive.to(device)\n            with torch.no_grad():\n                # For BCC third option \n                sensitive = F.one_hot(sensitive, num_classes=num_classes).float()\n                sens_feat = sensitive_net(sensitive)\n                # For BCC first and second options \n                _, sens_feat = sensitive_net(sensitive)\n            outputs = model.badd_forward(inputs, sens_feat)\n            loss = lossfunc(outputs, labels)\n            loss.backward()\n            optimizer.step()",
@@ -765,7 +774,7 @@ def get_adaface_json():
                     "content": [
                         {
                             "type": "text",
-                            "content": "Sample run scripts are provided in ",
+                            "content": "\n \n - Sample run scripts are provided in ",
                         },
                         {"type": "inline_code", "content": "scripts"},
                     ],
@@ -773,7 +782,7 @@ def get_adaface_json():
                 {
                     "type": "paragraph",
                     "content": [
-                        {"type": "text", "content": "Example: Run "},
+                        {"type": "text", "content": "\n - Example: Run "},
                         {
                             "type": "inline_code",
                             "content": "bash script/run_ir50_ms1mv2.sh",
@@ -790,7 +799,7 @@ def get_adaface_json():
                     "content": [
                         {
                             "type": "text",
-                            "content": "If you are using an ImageFolder dataset, then remove ",
+                            "content": "\n - If you are using an ImageFolder dataset, then remove ",
                         },
                         {"type": "inline_code", "content": "--use_mxrecord"},
                         {"type": "text", "content": "."},
@@ -801,7 +810,7 @@ def get_adaface_json():
                     "content": [
                         {
                             "type": "text",
-                            "content": "[IMPORTANT] Once the training script has started, check if your image color channel is correct by looking at the sample stored in ",
+                            "content": "\n - [IMPORTANT] Once the training script has started, check if your image color channel is correct by looking at the sample stored in ",
                         },
                         {
                             "type": "inline_code",
